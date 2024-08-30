@@ -83,7 +83,10 @@ def build_model(
     resume_from_checkpoint = ckpt_path
 
     checkpoint = torch.load(resume_from_checkpoint, map_location=device)
-    latent_diffusion.load_state_dict(checkpoint["state_dict"])
+    '''Original. Here is a bug that, an unexpected key "cond_stage_model.model.text_branch.embeddings.position_ids" exists in the checkpoint file. '''
+    # latent_diffusion.load_state_dict(checkpoint["state_dict"])
+    '''2023.10.17 Fix the bug by setting the paramer "strict" as "False" to ignore the unexpected key. '''
+    latent_diffusion.load_state_dict(checkpoint["state_dict"], strict=False)
 
     latent_diffusion.eval()
     latent_diffusion = latent_diffusion.to(device)
@@ -169,7 +172,7 @@ def style_transfer(
     #     print("Warning: The duration of the audio file %s must be less than 20 seconds. Longer duration will result in Nan in model output (we are still debugging that); Automatically set duration to 20 seconds")
     #     duration = 20
     
-    if(duration >= audio_file_duration):
+    if(duration > audio_file_duration):
         print("Warning: Duration you specified %s-seconds must equal or smaller than the audio file duration %ss" % (duration, audio_file_duration))
         duration = round_up_duration(audio_file_duration)
         print("Set new duration as %s-seconds" % duration)
